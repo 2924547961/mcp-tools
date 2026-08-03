@@ -7,6 +7,7 @@
 | 目录 | 用途 | 版本 |
 | --- | --- | --- |
 | [`github-repo-mcp`](./github-repo-mcp/) | 创建 GitHub 仓库，以及发布、同步、拉取和克隆代码 | 0.2.1 |
+| [`visio-mcp-sci`](./visio-mcp-sci/) | 生成适合 SCI/IEEE 论文的紧凑 Visio 图，支持原生箭头、避障正交连接线和布局审查 | 0.2.0 |
 
 ## 目录约定
 
@@ -16,6 +17,12 @@ mcp-tools/
 │   ├── src/
 │   ├── test/
 │   ├── package.json
+│   └── README.md
+├── visio-mcp-sci/
+│   ├── src/
+│   ├── tests/
+│   ├── examples/
+│   ├── pyproject.toml
 │   └── README.md
 └── another-mcp/
     ├── src/
@@ -34,3 +41,14 @@ npm run check
 ```
 
 详细配置和工具参数见 [`github-repo-mcp/README.md`](./github-repo-mcp/README.md)。
+
+## 使用 visio-mcp-sci
+
+```powershell
+cd .\visio-mcp-sci
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -e .
+```
+
+详细配置和绘图规范见 [`visio-mcp-sci/README.md`](./visio-mcp-sci/README.md)。

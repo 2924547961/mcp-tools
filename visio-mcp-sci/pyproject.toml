@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "visio-mcp-sci"
+version = "0.2.0"
+description = "Microsoft Visio MCP server with compact SCI/IEEE styling, safe routing, and layout audits"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+authors = [{name = "Visio MCP SCI contributors"}]
+keywords = ["mcp", "visio", "scientific-figures", "ieee", "automation"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: Microsoft :: Windows",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Office/Business",
+]
+dependencies = [
+  "mcp[cli]>=1.27.0",
+  "pywin32>=311",
+]
+
+[project.urls]
+Issues = "https://github.com/OWNER/visio-mcp-sci/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
