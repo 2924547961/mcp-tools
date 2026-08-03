@@ -1,6 +1,6 @@
 {
   "name": "github-repo-mcp",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "MCP server for creating GitHub repositories and publishing, syncing, pulling, and cloning code safely.",
   "type": "module",
   "bin": {

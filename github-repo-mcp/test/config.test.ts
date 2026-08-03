@@ -12,6 +12,11 @@ test("isPathInside accepts a root and its descendants", () => {
   assert.equal(isPathInside(path.resolve("outside"), root), false);
 });
 
+test("isPathInside accepts descendants of a filesystem root", () => {
+  const filesystemRoot = path.parse(process.cwd()).root;
+  assert.equal(isPathInside(process.cwd(), filesystemRoot), true);
+});
+
 test("assertAllowedPath rejects paths outside configured roots", () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "github-repo-mcp-root-"));
   const inside = path.join(root, "project");

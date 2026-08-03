@@ -22,8 +22,13 @@ function canonicalize(targetPath: string): string {
 }
 
 function comparable(value: string): string {
-  const normalized = path.normalize(value).replace(/[\\/]+$/, "");
-  return process.platform === "win32" ? normalized.toLowerCase() : normalized;
+  const normalized = path.normalize(value);
+  const withoutTrailingSeparators = normalized === path.parse(normalized).root
+    ? normalized
+    : normalized.replace(/[\\/]+$/, "");
+  return process.platform === "win32"
+    ? withoutTrailingSeparators.toLowerCase()
+    : withoutTrailingSeparators;
 }
 
 export function parseAllowedRoots(raw = process.env.GITHUB_MCP_ALLOWED_ROOTS): string[] {

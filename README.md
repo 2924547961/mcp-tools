@@ -6,7 +6,7 @@
 
 | 目录 | 用途 | 版本 |
 | --- | --- | --- |
-| [`github-repo-mcp`](./github-repo-mcp/) | 创建 GitHub 仓库，以及发布、同步、拉取和克隆代码 | 0.2.0 |
+| [`github-repo-mcp`](./github-repo-mcp/) | 创建 GitHub 仓库，以及发布、同步、拉取和克隆代码 | 0.2.1 |
 
 ## 目录约定
 
@@ -34,4 +34,3 @@ npm run check
 ```
 
 详细配置和工具参数见 [`github-repo-mcp/README.md`](./github-repo-mcp/README.md)。
-
