@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.2
+
+- Restored a short default side-normal lead-in before routed connectors turn.
+- Kept the lead-in compact at 0.08 in to avoid the heavy hook-like look of longer stubs.
+- Updated tests and documentation so the default routing matches the reference SCI framework style.
+
 ## 0.2.1
 
 - Restored the compact reference-figure routing style: clean horizontal/vertical native connectors without visible hook-like terminal stubs by default.

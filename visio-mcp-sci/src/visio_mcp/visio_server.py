@@ -892,14 +892,15 @@ def draw_safe_orthogonal_connector(
     preferred_axis: str = "auto", clearance: float = 0.12,
     role: str = "data_flow", profile: str = "sci_compact",
     enforce_clearance: bool = True,
-    terminal_stub: float = 0.0,
+    terminal_stub: float = 0.08,
     page: str = "", doc_name: str = "",
 ) -> str:
     """Draw an obstacle-aware native Visio orthogonal arrow.
 
     Use this instead of hand-authored polylines whenever a route passes near another
-    module or text box. By default the route is compact and Visio-like; set
-    terminal_stub only when a visibly straight side-normal lead-in is required.
+    module or text box. By default the route starts with a short side-normal
+    lead-in before turning. Set terminal_stub=0 to disable it, or 0.12 for a
+    stricter visible lead-in.
     """
     try:
         return _ok(visio.draw_safe_orthogonal_connector(
@@ -916,7 +917,7 @@ def audit_scientific_layout(
     min_control_gap: float = 0.14,
     connector_clearance: float = 0.04,
     min_connector_length: float = 0.12,
-    terminal_stub: float = 0.0,
+    terminal_stub: float = 0.08,
     corner_exclusion: float = 0.10,
     terminal_tolerance: float = 0.02,
     audit_terminal_geometry: bool = False,
@@ -944,7 +945,7 @@ def export_scientific_figure(
     min_control_gap: float = 0.14,
     connector_clearance: float = 0.04,
     min_connector_length: float = 0.12,
-    terminal_stub: float = 0.0,
+    terminal_stub: float = 0.08,
     corner_exclusion: float = 0.10,
     terminal_tolerance: float = 0.02,
     audit_terminal_geometry: bool = False,
@@ -1127,7 +1128,7 @@ def batch_connect_shapes(
     enforce_clearance: bool = True,
     min_clearance: float = 0.14,
     enforce_perpendicular: bool = True,
-    terminal_stub: float = 0.0,
+    terminal_stub: float = 0.08,
 ) -> str:
     """Connect multiple shape pairs in one call.
 
@@ -1159,7 +1160,7 @@ def batch_connect_shapes(
 
             With enforce_perpendicular=true, misaligned free-form connections prefer
             right-angle routing so arrows enter controls horizontally or vertically.
-            The route remains compact and does not add visible terminal stubs by default.
+            The route remains compact and uses a short side-normal terminal lead-in by default.
 
             Example (UML): [{"from":"dog","to":"animal","connector_master":"Inheritance","connector_stencil":"USTRME_M.VSSX"}]
             Example (free-form solid arrow): [{"from":"s1","to":"s2","line_pattern":"solid","end_arrow":"standard"}]

@@ -15,15 +15,15 @@ class ScientificProfileTests(unittest.TestCase):
         self.assertEqual(geometry["diamond_width"], 1.20)
         self.assertEqual(geometry["diamond_height"], 0.54)
         self.assertGreaterEqual(geometry["min_control_gap"], 0.14)
-        self.assertEqual(geometry["terminal_stub"], 0.0)
+        self.assertEqual(geometry["terminal_stub"], 0.08)
         self.assertEqual(geometry["corner_exclusion"], 0.10)
 
     def test_connector_geometry_rules_are_published(self):
         profile = get_scientific_style_profile("sci_compact")
         rules = " ".join(profile["aesthetic_rules"]).lower()
         self.assertIn("native visio connectors", rules)
-        self.assertIn("side-normal terminal stubs", rules)
-        self.assertIn("terminal stub", rules)
+        self.assertIn("side-normal segment", rules)
+        self.assertIn("first bend", rules)
 
     def test_publication_palette_profiles_are_available(self):
         for name in ("sci_compact", "sci_nature", "sci_ieee", "sci_cell", "sci_mono"):

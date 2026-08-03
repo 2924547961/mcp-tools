@@ -15,10 +15,10 @@ arrowheads, no gradients, no shadows, and readable 9-11 pt Arial text.
 Connectors should look like the reference framework diagram:
 
 - use native Visio `BeginArrow` / `EndArrow`, never triangle helper shapes;
-- prefer horizontal or vertical terminal segments into boxes;
+- start routed arrows with a short segment along the side normal, then turn;
 - keep ordinary neighbor connections short and clean;
 - use dashed ochre arrows for decision flow;
-- avoid tiny hook-like terminal stubs unless explicitly requested.
+- avoid long hook-like terminal stubs unless explicitly requested.
 
 ## Highlights
 
@@ -31,7 +31,7 @@ Connectors should look like the reference framework diagram:
 - Arial 9.5 pt body text and 10 pt multi-line text with 115% line spacing.
 - Native line patterns and arrowheads; no decorative arrowhead geometry.
 - Compact right-angle routing by default for nonaligned free-form connectors.
-- Obstacle-aware orthogonal routing without visible terminal stubs by default.
+- Obstacle-aware orthogonal routing with a short 0.08 in side-normal lead-in by default.
 - Optional strict terminal audit for side-normal stubs when a figure needs it.
 - Strict export blocks overlap, short connectors, connector crossings, and small gaps.
 - Semantic roles stored as Visio Shape Data, so validation survives save/reopen.
@@ -85,13 +85,14 @@ Example obstacle-aware branch:
   "obstacle_ids": [14, 15, 16],
   "preferred_axis": "horizontal",
   "clearance": 0.12,
-  "terminal_stub": 0.0,
+  "terminal_stub": 0.08,
   "role": "decision_flow"
 }
 ```
 
-Set `terminal_stub` to `0.08`-`0.12` and `audit_terminal_geometry=true` only when
-you explicitly want hard side-normal terminal checks.
+Set `terminal_stub` to `0` only when a route must be maximally compact. Use
+`0.12` and `audit_terminal_geometry=true` only when you explicitly want hard
+side-normal terminal checks.
 
 ## Palette Profiles
 
@@ -111,7 +112,7 @@ you explicitly want hard side-normal terminal checks.
 | Vertical gap | 0.16 in |
 | Minimum control/arrow gap | 0.14 in |
 | Connector clearance | 0.12 in |
-| Optional straight terminal stub | 0.0 in |
+| Short side-normal lead-in before bend | 0.08 in |
 | Rounded-corner exclusion for optional strict audit | 0.10 in |
 | Flat diamond | 1.20 x 0.54 in |
 | Body / multi-line text | 9.5 / 10 pt |

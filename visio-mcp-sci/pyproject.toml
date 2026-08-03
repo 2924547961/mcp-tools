@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "visio-mcp-sci"
-version = "0.2.1"
+version = "0.2.2"
 description = "Microsoft Visio MCP server with compact SCI/IEEE styling, safe routing, and layout audits"
 readme = "README.md"
 requires-python = ">=3.10"

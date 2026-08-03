@@ -121,7 +121,7 @@ SCIENTIFIC_STYLE_PROFILES = {
             "connector_clearance": 0.12,
             "label_clearance": 0.10,
             "min_connector_length": 0.12,
-            "terminal_stub": 0.0,
+            "terminal_stub": 0.08,
             "corner_exclusion": 0.10,
             "terminal_tolerance": 0.02,
             "text_margin": "0.05 in",
@@ -130,7 +130,7 @@ SCIENTIFIC_STYLE_PROFILES = {
         "aesthetic_rules": [
             "Use editable vector shapes with no gradients, shadows, or decorative effects.",
             "Prefer short, clean native Visio connectors over hand-made arrow geometry.",
-            "Use side-normal terminal stubs only when they improve clarity in dense routing.",
+            "Start routed connectors with a short side-normal segment before the first bend.",
             "Minimize excess whitespace and use no more than four functional hues per panel where practical.",
         ],
         "lines": {
@@ -1443,15 +1443,15 @@ class VisioApp:
         preferred_axis: str = "auto", clearance: float = 0.12,
         role: str = "data_flow", profile: str = "sci_compact",
         enforce_clearance: bool = True,
-        terminal_stub: float = 0.0,
+        terminal_stub: float = 0.08,
         page_name_or_index=None, doc_name: str = "",
     ) -> dict:
         """Draw a compact obstacle-aware orthogonal arrow.
 
-        This keeps native Visio arrowheads and avoids obstacles, but it no longer
-        forces a visible terminal stub by default. The result is closer to Visio's
-        natural publication-style routing and avoids the small hook-like segments
-        that can look heavy in dense SCI figures.
+        This keeps native Visio arrowheads and avoids obstacles. By default it
+        leaves each attached side along the side normal for a short 0.08-inch
+        lead-in before the first bend, which preserves the clean perpendicular
+        terminal style without the heavy hook-like look of longer stubs.
         """
         page = self._resolve_page(doc_name, page_name_or_index)
         source = page.Shapes.ItemFromID(int(from_shape_id))
@@ -1609,7 +1609,7 @@ class VisioApp:
     def audit_scientific_layout(
         self, min_control_gap: float = 0.14, connector_clearance: float = 0.04,
         min_connector_length: float = 0.12,
-        terminal_stub: float = 0.0, corner_exclusion: float = 0.10,
+        terminal_stub: float = 0.08, corner_exclusion: float = 0.10,
         terminal_tolerance: float = 0.02,
         audit_terminal_geometry: bool = False,
         page_name_or_index=None, doc_name: str = "",
@@ -2131,7 +2131,7 @@ class VisioApp:
         enforce_clearance: bool = True,
         min_clearance: float = 0.14,
         enforce_perpendicular: bool = True,
-        terminal_stub: float = 0.0,
+        terminal_stub: float = 0.08,
     ) -> list[dict]:
         """Connect multiple shape pairs in one call.
 
