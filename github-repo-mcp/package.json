@@ -1,0 +1,32 @@
+{
+  "name": "github-repo-mcp",
+  "version": "0.2.0",
+  "description": "MCP server for creating GitHub repositories and publishing, syncing, pulling, and cloning code safely.",
+  "type": "module",
+  "bin": {
+    "github-repo-mcp": "dist/src/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/src/index.js",
+    "dev": "tsx src/index.ts",
+    "test": "node --test dist/test/*.test.js",
+    "check": "npm run build && npm test"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0"
+  }
+}

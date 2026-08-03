@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "github-repo-manager": {
+      "command": "node",
+      "args": [
+        "C:\\absolute\\path\\to\\github-repo-mcp\\dist\\src\\index.js"
+      ],
+      "env": {
+        "GITHUB_MCP_ALLOWED_ROOTS": "E:\\projects;C:\\Users\\your-name\\Documents\\projects",
+        "GITHUB_MCP_GIT_NAME": "Your Name",
+        "GITHUB_MCP_GIT_EMAIL": "you@example.com"
+      }
+    }
+  }
+}
