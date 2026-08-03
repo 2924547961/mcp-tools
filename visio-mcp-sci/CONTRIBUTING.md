@@ -1,15 +1,15 @@
 # Contributing
 
-Contributions are welcome. Please keep the following invariants:
+Contributions are welcome. Preserve these drawing rules:
 
 - Arrows must use native Visio `BeginArrow` / `EndArrow` cells.
 - Do not introduce separate polygon arrowheads.
-- Connector terminals must be perpendicular to the attached shape side.
-- Do not place attachment points inside the rounded-corner exclusion zone.
-- Preserve the profile's minimum straight terminal stub before a bend.
+- Prefer clean horizontal or vertical terminal segments into controls.
+- Do not force visible terminal stubs by default; use them only when they improve clarity.
+- Avoid routes that touch rounded corners, cross text, or overlap controls.
 - Scientific figure changes must remain editable in Visio.
 - New routing behavior needs both a geometry unit test and a Windows/Visio smoke test.
-- Do not weaken strict export checks without documenting the false-positive case.
+- Do not weaken strict export checks for overlap, crossings, or hidden arrowheads without documenting the false-positive case.
 
 Before opening a pull request:
 

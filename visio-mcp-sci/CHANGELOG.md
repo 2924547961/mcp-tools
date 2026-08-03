@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.1
+
+- Restored the compact reference-figure routing style: clean horizontal/vertical native connectors without visible hook-like terminal stubs by default.
+- Kept perpendicular/right-angle routing as the default preference for nonaligned free-form connectors.
+- Made terminal stub checks optional through `audit_terminal_geometry`.
+- Added publication palette profiles: `sci_nature`, `sci_ieee`, `sci_cell`, and `sci_mono`.
+- Updated documentation to emphasize editable vector artwork, restrained palettes, native arrows, and compact SCI/IEEE layout.
+
 ## 0.2.0
 
 - Added compact SCI/IEEE palette, typography, spacing, and semantic roles.
@@ -10,6 +18,3 @@
 - Added obstacle-aware orthogonal routing.
 - Added geometry audit and strict audit-gated scientific export.
 - Added multi-line 115% spacing and paragraph spacing controls.
-- Enforced side-center attachment and perpendicular first/last connector segments.
-- Added a minimum terminal stub before bends and a rounded-corner exclusion zone.
-- Added blocking audit codes for corner attachment, diagonal terminals, and early bends.

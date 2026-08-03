@@ -892,15 +892,14 @@ def draw_safe_orthogonal_connector(
     preferred_axis: str = "auto", clearance: float = 0.12,
     role: str = "data_flow", profile: str = "sci_compact",
     enforce_clearance: bool = True,
-    terminal_stub: float = 0.12,
+    terminal_stub: float = 0.0,
     page: str = "", doc_name: str = "",
 ) -> str:
     """Draw an obstacle-aware native Visio orthogonal arrow.
 
     Use this instead of hand-authored polylines whenever a route passes near another
-    module or text box. Connectors attach at side centers; their first and last
-    segments are perpendicular to the control edge and remain straight for at least
-    terminal_stub before any 90-degree turn. Rounded-corner attachments are avoided.
+    module or text box. By default the route is compact and Visio-like; set
+    terminal_stub only when a visibly straight side-normal lead-in is required.
     """
     try:
         return _ok(visio.draw_safe_orthogonal_connector(
@@ -917,20 +916,22 @@ def audit_scientific_layout(
     min_control_gap: float = 0.14,
     connector_clearance: float = 0.04,
     min_connector_length: float = 0.12,
-    terminal_stub: float = 0.12,
+    terminal_stub: float = 0.0,
     corner_exclusion: float = 0.10,
     terminal_tolerance: float = 0.02,
+    audit_terminal_geometry: bool = False,
     page: str = "", doc_name: str = "",
 ) -> str:
-    """Audit spacing, crossings, corner attachments, and terminal geometry.
+    """Audit spacing and connector crossings for compact scientific figures.
 
     This is mandatory before exporting compact scientific figures. Fix every error;
     warnings identify control gaps that are too small for reliable print rendering.
+    Set audit_terminal_geometry=true only when strict side-normal terminal checks are needed.
     """
     try:
         return _ok(visio.audit_scientific_layout(
             min_control_gap, connector_clearance, min_connector_length,
-            terminal_stub, corner_exclusion, terminal_tolerance,
+            terminal_stub, corner_exclusion, terminal_tolerance, audit_terminal_geometry,
             _parse_page(page), doc_name,
         ))
     except Exception as e:
@@ -943,9 +944,10 @@ def export_scientific_figure(
     min_control_gap: float = 0.14,
     connector_clearance: float = 0.04,
     min_connector_length: float = 0.12,
-    terminal_stub: float = 0.12,
+    terminal_stub: float = 0.0,
     corner_exclusion: float = 0.10,
     terminal_tolerance: float = 0.02,
+    audit_terminal_geometry: bool = False,
     page: str = "", doc_name: str = "",
 ) -> str:
     """Audit and export a scientific figure to one or more image paths.
@@ -958,7 +960,7 @@ def export_scientific_figure(
         page_ref = _parse_page(page)
         audit = visio.audit_scientific_layout(
             min_control_gap, connector_clearance, min_connector_length,
-            terminal_stub, corner_exclusion, terminal_tolerance,
+            terminal_stub, corner_exclusion, terminal_tolerance, audit_terminal_geometry,
             page_ref, doc_name,
         )
         blocked = audit["errors"] > 0 or (strict and audit["warnings"] > 0)
@@ -1125,7 +1127,7 @@ def batch_connect_shapes(
     enforce_clearance: bool = True,
     min_clearance: float = 0.14,
     enforce_perpendicular: bool = True,
-    terminal_stub: float = 0.12,
+    terminal_stub: float = 0.0,
 ) -> str:
     """Connect multiple shape pairs in one call.
 
@@ -1155,10 +1157,9 @@ def batch_connect_shapes(
             native arrowheads remain visible. Stencil-specific semantic connectors are
             never moved automatically.
 
-            With enforce_perpendicular=true, misaligned free-form connections are
-            forced to right-angle routing. The scientific layout audit then blocks
-            corner attachments, non-perpendicular terminals, and bends closer than
-            terminal_stub to either control.
+            With enforce_perpendicular=true, misaligned free-form connections prefer
+            right-angle routing so arrows enter controls horizontally or vertically.
+            The route remains compact and does not add visible terminal stubs by default.
 
             Example (UML): [{"from":"dog","to":"animal","connector_master":"Inheritance","connector_stencil":"USTRME_M.VSSX"}]
             Example (free-form solid arrow): [{"from":"s1","to":"s2","line_pattern":"solid","end_arrow":"standard"}]

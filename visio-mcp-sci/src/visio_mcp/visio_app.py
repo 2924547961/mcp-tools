@@ -3,6 +3,7 @@
 import sys
 import logging
 import math
+import copy
 import pythoncom
 import win32com.client
 
@@ -120,7 +121,7 @@ SCIENTIFIC_STYLE_PROFILES = {
             "connector_clearance": 0.12,
             "label_clearance": 0.10,
             "min_connector_length": 0.12,
-            "terminal_stub": 0.12,
+            "terminal_stub": 0.0,
             "corner_exclusion": 0.10,
             "terminal_tolerance": 0.02,
             "text_margin": "0.05 in",
@@ -128,9 +129,8 @@ SCIENTIFIC_STYLE_PROFILES = {
         },
         "aesthetic_rules": [
             "Use editable vector shapes with no gradients, shadows, or decorative effects.",
-            "Attach connectors near the center of a shape side, never at a rounded corner.",
-            "Keep the first and last connector segments perpendicular to the attached side.",
-            "Preserve a straight terminal stub before every 90-degree bend.",
+            "Prefer short, clean native Visio connectors over hand-made arrow geometry.",
+            "Use side-normal terminal stubs only when they improve clarity in dense routing.",
             "Minimize excess whitespace and use no more than four functional hues per panel where practical.",
         ],
         "lines": {
@@ -161,16 +161,107 @@ SCIENTIFIC_STYLE_PROFILES = {
 }
 
 
+def _register_palette_profile(key: str, name: str, description: str, palette: dict[str, str]) -> None:
+    spec = copy.deepcopy(SCIENTIFIC_STYLE_PROFILES["sci_compact"])
+    spec["name"] = name
+    spec["description"] = description
+    spec["palette"].update(palette)
+    spec["roles"].update({
+        "neutral": {"fill_color": palette["white"], "line_color": palette["frame"]},
+        "input": {"fill_color": palette["white"], "line_color": palette["frame"]},
+        "output": {"fill_color": palette["white"], "line_color": palette["frame"]},
+        "backbone": {"fill_color": palette["backbone_fill"], "line_color": palette["backbone_line"]},
+        "decision": {"fill_color": palette["decision_fill"], "line_color": palette["decision_line"]},
+        "exit": {"fill_color": palette["decision_fill"], "line_color": palette["decision_line"]},
+        "auxiliary": {"fill_color": palette["auxiliary_fill"], "line_color": palette["auxiliary_line"]},
+        "highlight": {"fill_color": palette["highlight_fill"], "line_color": palette["highlight_line"]},
+        "safety": {"fill_color": palette["auxiliary_fill"], "line_color": palette["auxiliary_line"]},
+        "accept": {"fill_color": palette["accept_fill"], "line_color": palette["accept_line"]},
+        "reject": {"fill_color": palette["reject_fill"], "line_color": palette["reject_line"]},
+        "container": {"fill_color": palette["white"], "line_color": palette["container_line"], "line_weight": "0.7 pt"},
+        "data_flow": {
+            "line_color": palette["ink"], "line_pattern": "solid",
+            "line_weight": "1.1 pt", "end_arrow": "standard", "end_arrow_size": "2",
+        },
+        "decision_flow": {
+            "line_color": palette["decision_line"], "line_pattern": "dashed",
+            "line_weight": "1 pt", "end_arrow": "standard", "end_arrow_size": "2",
+        },
+    })
+    spec["lines"]["data_color"] = palette["ink"]
+    spec["lines"]["decision_color"] = palette["decision_line"]
+    SCIENTIFIC_STYLE_PROFILES[key] = spec
+
+
+_register_palette_profile(
+    "sci_nature",
+    "Nature-style muted colorblind palette",
+    "Muted blue, ochre, teal, gray, green, and vermillion for editable Nature-style figures.",
+    {
+        "ink": "RGB(36,49,60)", "frame": "RGB(126,136,144)",
+        "backbone_fill": "RGB(225,236,247)", "backbone_line": "RGB(79,117,157)",
+        "decision_fill": "RGB(250,240,226)", "decision_line": "RGB(196,124,49)",
+        "auxiliary_fill": "RGB(232,237,243)", "auxiliary_line": "RGB(96,112,130)",
+        "highlight_fill": "RGB(228,242,239)", "highlight_line": "RGB(48,128,119)",
+        "accept_fill": "RGB(229,243,234)", "accept_line": "RGB(59,134,88)",
+        "reject_fill": "RGB(248,231,231)", "reject_line": "RGB(184,80,83)",
+        "container_line": "RGB(159,168,176)", "white": "RGB(255,255,255)",
+    },
+)
+_register_palette_profile(
+    "sci_ieee",
+    "IEEE restrained blue-gray palette",
+    "Low-saturation blue-gray palette for engineering framework diagrams and grayscale robustness.",
+    {
+        "ink": "RGB(38,47,56)", "frame": "RGB(128,136,143)",
+        "backbone_fill": "RGB(226,234,243)", "backbone_line": "RGB(76,105,139)",
+        "decision_fill": "RGB(249,240,226)", "decision_line": "RGB(181,119,58)",
+        "auxiliary_fill": "RGB(235,238,242)", "auxiliary_line": "RGB(94,104,116)",
+        "highlight_fill": "RGB(230,241,238)", "highlight_line": "RGB(58,119,108)",
+        "accept_fill": "RGB(231,242,235)", "accept_line": "RGB(69,128,89)",
+        "reject_fill": "RGB(247,233,234)", "reject_line": "RGB(170,78,88)",
+        "container_line": "RGB(160,166,172)", "white": "RGB(255,255,255)",
+    },
+)
+_register_palette_profile(
+    "sci_cell",
+    "Cell-style soft categorical palette",
+    "Soft categorical palette with teal emphasis, blue structure, amber decisions, and restrained red/green outcomes.",
+    {
+        "ink": "RGB(38,45,52)", "frame": "RGB(124,135,142)",
+        "backbone_fill": "RGB(224,237,245)", "backbone_line": "RGB(66,111,150)",
+        "decision_fill": "RGB(250,238,222)", "decision_line": "RGB(197,116,54)",
+        "auxiliary_fill": "RGB(232,236,241)", "auxiliary_line": "RGB(84,101,116)",
+        "highlight_fill": "RGB(226,242,238)", "highlight_line": "RGB(43,130,121)",
+        "accept_fill": "RGB(229,243,235)", "accept_line": "RGB(63,136,92)",
+        "reject_fill": "RGB(249,232,233)", "reject_line": "RGB(182,76,86)",
+        "container_line": "RGB(158,166,173)", "white": "RGB(255,255,255)",
+    },
+)
+_register_palette_profile(
+    "sci_mono",
+    "Monochrome print-safe palette",
+    "Near-monochrome palette for journals or reviewers who prefer line-art style framework figures.",
+    {
+        "ink": "RGB(45,49,54)", "frame": "RGB(120,126,132)",
+        "backbone_fill": "RGB(235,239,244)", "backbone_line": "RGB(82,92,105)",
+        "decision_fill": "RGB(247,244,239)", "decision_line": "RGB(116,98,77)",
+        "auxiliary_fill": "RGB(238,240,243)", "auxiliary_line": "RGB(101,108,117)",
+        "highlight_fill": "RGB(236,241,240)", "highlight_line": "RGB(85,110,106)",
+        "accept_fill": "RGB(239,244,241)", "accept_line": "RGB(87,113,96)",
+        "reject_fill": "RGB(244,239,240)", "reject_line": "RGB(124,91,95)",
+        "container_line": "RGB(164,169,174)", "white": "RGB(255,255,255)",
+    },
+)
+
+
 def get_scientific_style_profile(profile: str = "sci_compact") -> dict:
     """Return a detached scientific-style profile for MCP clients."""
     key = str(profile or "sci_compact").lower().replace("-", "_")
     if key not in SCIENTIFIC_STYLE_PROFILES:
         raise ValueError(f"Unknown scientific style profile: {profile}")
     source = SCIENTIFIC_STYLE_PROFILES[key]
-    return {
-        section: (dict(value) if isinstance(value, dict) else value)
-        for section, value in source.items()
-    }
+    return copy.deepcopy(source)
 
 
 def _scientific_defaults(defn: dict, profile: str = "", default_role: str = "neutral") -> dict:
@@ -1352,24 +1443,25 @@ class VisioApp:
         preferred_axis: str = "auto", clearance: float = 0.12,
         role: str = "data_flow", profile: str = "sci_compact",
         enforce_clearance: bool = True,
-        terminal_stub: float = 0.12,
+        terminal_stub: float = 0.0,
         page_name_or_index=None, doc_name: str = "",
     ) -> dict:
-        """Draw an orthogonal arrow with side-normal terminal segments.
+        """Draw a compact obstacle-aware orthogonal arrow.
 
-        The connector attaches at side centers and must travel straight away from
-        each shape before it can turn. This prevents bends at rounded corners and
-        makes the terminal geometry visually unambiguous in compact figures.
+        This keeps native Visio arrowheads and avoids obstacles, but it no longer
+        forces a visible terminal stub by default. The result is closer to Visio's
+        natural publication-style routing and avoids the small hook-like segments
+        that can look heavy in dense SCI figures.
         """
         page = self._resolve_page(doc_name, page_name_or_index)
         source = page.Shapes.ItemFromID(int(from_shape_id))
         target = page.Shapes.ItemFromID(int(to_shape_id))
         adjustment = None
-        terminal_stub = max(float(terminal_stub), 0.06)
+        terminal_stub = max(float(terminal_stub), 0.0)
         if enforce_clearance:
             adjustment = self._ensure_connector_clearance(
                 page, source, target,
-                max(float(clearance), terminal_stub * 2 + 0.02),
+                max(float(clearance), 0.08),
             )
 
         source_box = self._shape_bounds(source)
@@ -1422,31 +1514,49 @@ class VisioApp:
         if axis == "horizontal":
             if abs(start[1] - finish[1]) <= 1e-6:
                 candidates.append([start, finish])
-            midpoint = (start_stub[0] + finish_stub[0]) / 2
-            candidates.append([
-                start, start_stub, (midpoint, start[1]),
-                (midpoint, finish[1]), finish_stub, finish,
-            ])
+            midpoint = (start[0] + finish[0]) / 2
+            if terminal_stub:
+                candidates.append([
+                    start, start_stub, (midpoint, start[1]),
+                    (midpoint, finish[1]), finish_stub, finish,
+                ])
+            else:
+                candidates.append([start, (midpoint, start[1]), (midpoint, finish[1]), finish])
             above = max([rect[3] for rect in obstacles] + [start[1], finish[1]]) + clearance
             below = min([rect[1] for rect in obstacles] + [start[1], finish[1]]) - clearance
-            candidates += [
-                [start, start_stub, (start_stub[0], above), (finish_stub[0], above), finish_stub, finish],
-                [start, start_stub, (start_stub[0], below), (finish_stub[0], below), finish_stub, finish],
-            ]
+            if terminal_stub:
+                candidates += [
+                    [start, start_stub, (start_stub[0], above), (finish_stub[0], above), finish_stub, finish],
+                    [start, start_stub, (start_stub[0], below), (finish_stub[0], below), finish_stub, finish],
+                ]
+            else:
+                candidates += [
+                    [start, (start[0], above), (finish[0], above), finish],
+                    [start, (start[0], below), (finish[0], below), finish],
+                ]
         else:
             if abs(start[0] - finish[0]) <= 1e-6:
                 candidates.append([start, finish])
-            midpoint = (start_stub[1] + finish_stub[1]) / 2
-            candidates.append([
-                start, start_stub, (start[0], midpoint),
-                (finish[0], midpoint), finish_stub, finish,
-            ])
+            midpoint = (start[1] + finish[1]) / 2
+            if terminal_stub:
+                candidates.append([
+                    start, start_stub, (start[0], midpoint),
+                    (finish[0], midpoint), finish_stub, finish,
+                ])
+            else:
+                candidates.append([start, (start[0], midpoint), (finish[0], midpoint), finish])
             right = max([rect[2] for rect in obstacles] + [start[0], finish[0]]) + clearance
             left = min([rect[0] for rect in obstacles] + [start[0], finish[0]]) - clearance
-            candidates += [
-                [start, start_stub, (right, start_stub[1]), (right, finish_stub[1]), finish_stub, finish],
-                [start, start_stub, (left, start_stub[1]), (left, finish_stub[1]), finish_stub, finish],
-            ]
+            if terminal_stub:
+                candidates += [
+                    [start, start_stub, (right, start_stub[1]), (right, finish_stub[1]), finish_stub, finish],
+                    [start, start_stub, (left, start_stub[1]), (left, finish_stub[1]), finish_stub, finish],
+                ]
+            else:
+                candidates += [
+                    [start, (right, start[1]), (right, finish[1]), finish],
+                    [start, (left, start[1]), (left, finish[1]), finish],
+                ]
 
         def clean_path(path: list[tuple[float, float]]) -> list[tuple[float, float]]:
             cleaned: list[tuple[float, float]] = []
@@ -1464,10 +1574,9 @@ class VisioApp:
         remaining = collision_count(points)
         if remaining:
             raise ValueError(
-                f"No collision-free perpendicular-terminal route found; {remaining} "
-                f"obstacle(s) intrude into the required {terminal_stub:.2f}-inch terminal "
-                "stub or orthogonal corridor. Increase the control-to-obstacle gap, move "
-                "the obstacle, or pass a narrower obstacle_ids list."
+                f"No collision-free orthogonal route found; {remaining} obstacle(s) "
+                "intrude into the connector corridor. Increase the gap, move the "
+                "obstacle, or pass a narrower obstacle_ids list."
             )
         flat = [coordinate for point in points for coordinate in point]
         connector = page.DrawPolyline(flat, 0)
@@ -1489,7 +1598,8 @@ class VisioApp:
         )
         self._set_shape_data_text(connector, "SafeRouteFrom", "SafeRouteFrom", str(int(source.ID)))
         self._set_shape_data_text(connector, "SafeRouteTo", "SafeRouteTo", str(int(target.ID)))
-        self._set_shape_data_text(connector, "TerminalStub", "TerminalStub", f"{terminal_stub:.6f}")
+        if terminal_stub:
+            self._set_shape_data_text(connector, "TerminalStub", "TerminalStub", f"{terminal_stub:.6f}")
         info = self._shape_info(connector)
         info["route_points"] = [[round(x, 4), round(y, 4)] for x, y in points]
         if adjustment:
@@ -1499,11 +1609,12 @@ class VisioApp:
     def audit_scientific_layout(
         self, min_control_gap: float = 0.14, connector_clearance: float = 0.04,
         min_connector_length: float = 0.12,
-        terminal_stub: float = 0.12, corner_exclusion: float = 0.10,
+        terminal_stub: float = 0.0, corner_exclusion: float = 0.10,
         terminal_tolerance: float = 0.02,
+        audit_terminal_geometry: bool = False,
         page_name_or_index=None, doc_name: str = "",
     ) -> dict:
-        """Audit spacing, crossings, and perpendicular connector terminals."""
+        """Audit spacing and connector crossings for compact scientific figures."""
         page = self._resolve_page(doc_name, page_name_or_index)
         controls: list[dict] = []
         connectors: list[object] = []
@@ -1635,7 +1746,7 @@ class VisioApp:
             terminals = dict(terminal_map.get(connector_id, {}))
             terminals.setdefault("begin", stored_shape_id(connector, "SafeRouteFrom"))
             terminals.setdefault("end", stored_shape_id(connector, "SafeRouteTo"))
-            if len(points) >= 2:
+            if audit_terminal_geometry and len(points) >= 2:
                 if terminals.get("begin") is not None:
                     issues.extend(terminal_issue(
                         connector_id, "begin", points[0], points[1], terminals["begin"],
@@ -1675,6 +1786,7 @@ class VisioApp:
                 "terminal_stub": terminal_stub,
                 "corner_exclusion": corner_exclusion,
                 "terminal_tolerance": terminal_tolerance,
+                "audit_terminal_geometry": audit_terminal_geometry,
             },
         }
 
@@ -2019,7 +2131,7 @@ class VisioApp:
         enforce_clearance: bool = True,
         min_clearance: float = 0.14,
         enforce_perpendicular: bool = True,
-        terminal_stub: float = 0.12,
+        terminal_stub: float = 0.0,
     ) -> list[dict]:
         """Connect multiple shape pairs in one call.
 
@@ -2060,10 +2172,7 @@ class VisioApp:
             connector_stencil = conn.get("connector_stencil", "")
             adjustment = None
             if enforce_clearance and not connector_master:
-                adjustment = self._ensure_connector_clearance(
-                    page, from_shape, to_shape,
-                    max(float(min_clearance), float(terminal_stub) * 2 + 0.02),
-                )
+                adjustment = self._ensure_connector_clearance(page, from_shape, to_shape, float(min_clearance))
 
             if enforce_perpendicular and not connector_master:
                 from_box = self._shape_bounds(from_shape)

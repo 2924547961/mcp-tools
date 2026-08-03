@@ -93,13 +93,13 @@ async def main() -> None:
             safe = await call("draw_safe_orthogonal_connector", {
                 "from_shape_id": refs["target"], "to_shape_id": refs["finish"],
                 "obstacle_ids": [refs["obstacle"]], "preferred_axis": "horizontal",
-                "clearance": 0.12, "terminal_stub": 0.12,
+                "clearance": 0.12,
                 "role": "decision_flow",
             })
             audit = await call("audit_scientific_layout", {
                 "min_control_gap": 0.14, "connector_clearance": 0.03,
                 "min_connector_length": 0.12,
-                "terminal_stub": 0.12, "corner_exclusion": 0.10,
+                "corner_exclusion": 0.10,
             })
             if audit["status"] != "pass":
                 raise RuntimeError(json.dumps(audit, ensure_ascii=False, indent=2))
@@ -112,7 +112,7 @@ async def main() -> None:
                 "output_paths": json.dumps([str(svg), str(png)]), "strict": True,
                 "min_control_gap": 0.14, "connector_clearance": 0.03,
                 "min_connector_length": 0.12,
-                "terminal_stub": 0.12, "corner_exclusion": 0.10,
+                "corner_exclusion": 0.10,
             })
             if not exported["exported"]:
                 raise RuntimeError(json.dumps(exported, ensure_ascii=False, indent=2))

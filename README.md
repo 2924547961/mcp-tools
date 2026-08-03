@@ -7,7 +7,7 @@
 | 目录 | 用途 | 版本 |
 | --- | --- | --- |
 | [`github-repo-mcp`](./github-repo-mcp/) | 创建 GitHub 仓库，以及发布、同步、拉取和克隆代码 | 0.2.2 |
-| [`visio-mcp-sci`](./visio-mcp-sci/) | 生成适合 SCI/IEEE 论文的紧凑 Visio 图，支持原生箭头、避障正交连接线和布局审查 | 0.2.0 |
+| [`visio-mcp-sci`](./visio-mcp-sci/) | 生成适合 SCI/IEEE 论文的紧凑 Visio 图，支持原生箭头、避障正交连接线和布局审查 | 0.2.1 |
 
 ## 目录约定
 
