@@ -17,6 +17,17 @@ test("isPathInside accepts descendants of a filesystem root", () => {
   assert.equal(isPathInside(process.cwd(), filesystemRoot), true);
 });
 
+test("isPathInside handles Windows drive roots and directory boundaries", () => {
+  if (process.platform !== "win32") {
+    return;
+  }
+
+  assert.equal(isPathInside("C:\\Users\\xyh\\project", "C:\\"), true);
+  assert.equal(isPathInside("C:\\Users\\xyh\\project", "C:\\Users\\xyh"), true);
+  assert.equal(isPathInside("C:\\Users\\xyh-other\\project", "C:\\Users\\xyh"), false);
+  assert.equal(isPathInside("D:\\Users\\xyh\\project", "C:\\"), false);
+});
+
 test("assertAllowedPath rejects paths outside configured roots", () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "github-repo-mcp-root-"));
   const inside = path.join(root, "project");

@@ -31,6 +31,10 @@ function comparable(value: string): string {
     : withoutTrailingSeparators;
 }
 
+function withTrailingSeparator(value: string): string {
+  return /[\\/]$/.test(value) ? value : `${value}${path.sep}`;
+}
+
 export function parseAllowedRoots(raw = process.env.GITHUB_MCP_ALLOWED_ROOTS): string[] {
   const values = raw
     ? raw.split(path.delimiter).map(value => value.trim()).filter(Boolean)
@@ -39,8 +43,18 @@ export function parseAllowedRoots(raw = process.env.GITHUB_MCP_ALLOWED_ROOTS): s
 }
 
 export function isPathInside(candidate: string, root: string): boolean {
-  const relative = path.relative(comparable(root), comparable(candidate));
-  return relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative));
+  const normalizedCandidate = comparable(candidate);
+  const normalizedRoot = comparable(root);
+  if (normalizedCandidate === normalizedRoot) {
+    return true;
+  }
+
+  const rootPath = path.parse(normalizedRoot).root;
+  if (normalizedRoot === comparable(rootPath)) {
+    return normalizedCandidate.startsWith(withTrailingSeparator(normalizedRoot));
+  }
+
+  return normalizedCandidate.startsWith(withTrailingSeparator(normalizedRoot));
 }
 
 export function assertAllowedPath(

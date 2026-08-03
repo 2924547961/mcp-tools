@@ -1,7 +1,7 @@
 {
   "name": "github-repo-mcp",
-  "version": "0.2.1",
-  "description": "MCP server for creating GitHub repositories and publishing, syncing, pulling, and cloning code safely.",
+  "version": "0.2.2",
+  "description": "MCP server for automatically creating GitHub repositories after Codex generates code, then committing, publishing, syncing, pulling, and cloning code safely.",
   "type": "module",
   "bin": {
     "github-repo-mcp": "dist/src/index.js"

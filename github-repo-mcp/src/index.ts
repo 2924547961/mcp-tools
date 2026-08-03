@@ -17,7 +17,7 @@ import {
 
 const server = new McpServer({
   name: "github-repo-mcp",
-  version: "0.2.1",
+  version: "0.2.2",
 });
 
 function textResult(data: unknown) {
@@ -48,7 +48,7 @@ const actionSchema = z.discriminatedUnion("action", [
     private: z.boolean().default(true),
   }),
   z.object({
-    action: z.literal("create_and_publish").describe("Create a repository and publish local code in one call"),
+    action: z.literal("create_and_publish").describe("After Codex creates code, automatically create a GitHub repository, initialize Git if needed, commit the local project, set origin, and push in one call"),
     localPath,
     name: repositoryName.optional().describe("Defaults to the local directory name"),
     owner: z.string().optional(),
@@ -157,9 +157,9 @@ async function dispatch(input: z.infer<typeof actionSchema>): Promise<unknown> {
 server.registerTool(
   "github_repository",
   {
-    title: "Manage GitHub repository",
+    title: "Auto publish Codex code to GitHub",
     description:
-      "One unified tool for creating repositories, publishing code, syncing changes, pulling, cloning, and checking status. Select the operation with action.",
+      "Use this when the user asks Codex to create code and then automatically create a GitHub repository, commit the generated project, push it, publish code, sync changes, pull, clone, or check repository status. Select the operation with action.",
     inputSchema: actionSchema,
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false },
   },
