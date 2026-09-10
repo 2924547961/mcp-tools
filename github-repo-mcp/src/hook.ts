@@ -2,7 +2,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { baselineId, snapshotWorkingTree, stateDirectory } from "./baseline.js";
+import { baselineId, repositoryRoot, snapshotWorkingTree, stateDirectory } from "./baseline.js";
 import { SyncError } from "./auto-sync-types.js";
 import { safeSync } from "./safe-sync.js";
 
@@ -35,8 +35,27 @@ function log(cwd: string, event: unknown): void {
   }
 }
 
+function isExpectedIneligibleContext(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return message.includes("outside GITHUB_MCP_ALLOWED_ROOTS") || message.startsWith("Not a Git repository:");
+}
+
+async function configuredRepositoryRoot(cwd: string): Promise<string | null> {
+  try {
+    const root = await repositoryRoot(cwd);
+    return fs.existsSync(path.join(root, ".github-auto-sync.json")) ? root : null;
+  } catch (error) {
+    if (isExpectedIneligibleContext(error)) return null;
+    throw error;
+  }
+}
+
 async function onPrompt(event: HookEvent): Promise<void> {
   try {
+    if (!await configuredRepositoryRoot(event.cwd)) {
+      output({ continue: true });
+      return;
+    }
     const baseline = await snapshotWorkingTree(event.cwd, event.session_id, event.turn_id);
     log(baseline.repositoryRoot, { event: "UserPromptSubmit", baselineId: baseline.id });
     output({
@@ -56,6 +75,17 @@ async function onPrompt(event: HookEvent): Promise<void> {
 async function onStop(event: HookEvent): Promise<void> {
   if (event.stop_hook_active) {
     output({ continue: true });
+    return;
+  }
+  try {
+    if (!await configuredRepositoryRoot(event.cwd)) {
+      output({ continue: true });
+      return;
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`github-auto-sync eligibility check failed: ${message}`);
+    output({ continue: true, systemMessage: `GitHub auto-sync eligibility check failed: ${message}` });
     return;
   }
   const id = baselineId(event.session_id, event.turn_id);

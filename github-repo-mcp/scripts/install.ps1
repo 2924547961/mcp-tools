@@ -34,12 +34,15 @@ function Add-Hook([hashtable]$Document, [string]$Event, [string]$ModeName, [stri
   if (-not $Document.ContainsKey('hooks')) { $Document.hooks = @{} }
   if (-not $Document.hooks.ContainsKey($Event)) { $Document.hooks[$Event] = @() }
   $command = '"{0}" "{1}" {2}' -f $NodePath, $HookPath, $ModeName
+  $nodeLiteral = "'" + $NodePath.Replace("'", "''") + "'"
+  $hookLiteral = "'" + $HookPath.Replace("'", "''") + "'"
+  $commandWindows = "& $nodeLiteral $hookLiteral $ModeName"
   $exists = @($Document.hooks[$Event]) | Where-Object {
     @($_.hooks) | Where-Object { $_.commandWindows -like "*$InstalledHookPath*" -or $_.command -like "*$InstalledHookPath*" }
   }
   if (-not $exists) {
     $Document.hooks[$Event] = @($Document.hooks[$Event]) + @{
-      hooks = @(@{ type = 'command'; command = $command; commandWindows = $command; timeout = 600; statusMessage = "GitHub auto-sync: $Event" })
+      hooks = @(@{ type = 'command'; command = $command; commandWindows = $commandWindows; timeout = 600; statusMessage = "GitHub auto-sync: $Event" })
     }
   }
 }
