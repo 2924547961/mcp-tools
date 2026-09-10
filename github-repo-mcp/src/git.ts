@@ -3,14 +3,9 @@ import path from "node:path";
 import { assertAllowedPath, gitExecutable } from "./config.js";
 import { cloneUrlFor } from "./github.js";
 import { CommandError, runCommand } from "./process.js";
-
-const sensitiveBasenames = [
-  /^\.env(?:\..+)?$/i,
-  /^id_(?:rsa|dsa|ecdsa|ed25519)$/i,
-  /\.(?:pem|p12|pfx|key)$/i,
-  /^credentials(?:\..+)?\.json$/i,
-  /^service-account.*\.json$/i,
-];
+import { SyncError } from "./auto-sync-types.js";
+import { parseStatus } from "./baseline.js";
+import { scanSensitiveFiles } from "./safe-sync.js";
 
 async function git(cwd: string, args: string[], allowExitCodes = [0]) {
   return runCommand(gitExecutable(), args, { cwd, allowExitCodes });
@@ -72,32 +67,19 @@ async function ensureRemote(cwd: string, remoteName: string, url: string): Promi
   }
 }
 
-async function untrackedFiles(cwd: string): Promise<string[]> {
-  const result = await git(cwd, ["ls-files", "--others", "--exclude-standard", "-z"]);
-  return result.stdout.split("\0").filter(Boolean);
-}
-
-async function assertNoSensitiveUntracked(cwd: string): Promise<void> {
-  const sensitive = (await untrackedFiles(cwd)).filter(file => {
-    const base = path.basename(file);
-    if (/\.example$/i.test(base)) {
-      return false;
-    }
-    return sensitiveBasenames.some(pattern => pattern.test(base));
-  });
-  if (sensitive.length) {
-    throw new Error(
-      `Refusing to stage likely sensitive files: ${sensitive.join(", ")}. Ignore them or set allowSensitiveFiles=true explicitly.`,
-    );
-  }
-}
-
 async function stageChanges(
   cwd: string,
   options: { includePaths?: string[]; includeUntracked?: boolean; allowSensitiveFiles?: boolean },
 ): Promise<void> {
-  if (!options.allowSensitiveFiles && (options.includeUntracked || options.includePaths?.length)) {
-    await assertNoSensitiveUntracked(cwd);
+  if (!options.allowSensitiveFiles) {
+    let candidates = options.includePaths;
+    if (!candidates) {
+      const status = await git(cwd, ["status", "--porcelain=v1", "-z", "--untracked-files=all"]);
+      candidates = parseStatus(status.stdout)
+        .filter(entry => options.includeUntracked || entry.status !== "??")
+        .map(entry => entry.file);
+    }
+    scanSensitiveFiles(cwd, candidates);
   }
   if (options.includePaths?.length) {
     await git(cwd, ["add", "--", ...options.includePaths]);
@@ -170,14 +152,32 @@ export async function syncChanges(input: {
   if (!(await isGitRepository(cwd))) {
     throw new Error("Local path is not a Git repository. Use create_and_publish or publish_code first.");
   }
+  const activeBranch = await currentBranch(cwd);
+  if (input.branch && input.branch !== activeBranch) {
+    throw new SyncError(
+      "branch_mismatch",
+      `Current branch ${activeBranch} does not match requested branch ${input.branch}.`,
+    );
+  }
   await stageChanges(cwd, input);
   const commit = await commitIfNeeded(cwd, input.commitMessage || "chore: sync code changes");
-  const branch = input.branch || (await currentBranch(cwd));
+  const branch = activeBranch;
   const remoteName = input.remoteName || "origin";
+  let remoteCommit: string | null = null;
+  let verified = false;
   if (commit) {
-    await git(cwd, ["push", "-u", remoteName, branch]);
+    await git(cwd, ["push", "-u", remoteName, `HEAD:refs/heads/${branch}`]);
+    const result = await git(cwd, ["ls-remote", "--heads", remoteName, `refs/heads/${branch}`]);
+    remoteCommit = result.stdout.trim().split(/\s+/)[0] || null;
+    verified = remoteCommit === commit;
+    if (!verified) {
+      throw new SyncError("remote_verification_failed", "Push returned success, but remote SHA does not match local HEAD.", {
+        commit,
+        remoteCommit,
+      });
+    }
   }
-  return { localPath: cwd, branch, commit, pushed: Boolean(commit), noChanges: !commit };
+  return { localPath: cwd, branch, commit, remoteCommit, pushed: Boolean(commit), verified, noChanges: !commit };
 }
 
 export async function pullRepository(input: {
@@ -239,6 +239,9 @@ export async function repositoryStatus(localPath: string): Promise<Record<string
 }
 
 export function userFacingError(error: unknown): string {
+  if (error instanceof SyncError) {
+    return JSON.stringify({ status: error.code, error: error.message, details: error.details });
+  }
   if (error instanceof CommandError) {
     return error.message;
   }

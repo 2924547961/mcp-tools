@@ -14,10 +14,12 @@ import {
   syncChanges,
   userFacingError,
 } from "./git.js";
+import { snapshotWorkingTree } from "./baseline.js";
+import { readAutoSyncConfig, safeSync, writeAutoSyncConfig } from "./safe-sync.js";
 
 const server = new McpServer({
   name: "github-repo-mcp",
-  version: "0.2.2",
+  version: "0.3.0",
 });
 
 function textResult(data: unknown) {
@@ -40,6 +42,28 @@ const optionalBranch = z.string().min(1).optional().describe("Git branch; defaul
 const remoteName = z.string().min(1).default("origin").describe("Git remote name");
 
 const actionSchema = z.discriminatedUnion("action", [
+  z.object({
+    action: z.literal("baseline").describe("Capture the repository state at the start of a Codex turn"),
+    localPath,
+    sessionId: z.string().min(1),
+    turnId: z.string().min(1),
+  }),
+  z.object({
+    action: z.literal("safe_sync").describe("Safely stage only changes attributable to one baseline, run checks, commit, push, and verify the remote SHA"),
+    localPath,
+    baselineId: z.string().min(1),
+    expectedBranch: z.string().min(1).optional(),
+    remoteName,
+    includePaths: z.array(z.string().min(1)).optional(),
+    commitMessage: z.string().min(1).default("chore: sync Codex changes"),
+    runChecks: z.boolean().default(true),
+    verifyRemote: z.boolean().default(true),
+    dryRun: z.boolean().default(false),
+  }),
+  z.object({
+    action: z.enum(["pause", "resume"]).describe("Pause or resume repository-local automatic synchronization"),
+    localPath,
+  }),
   z.object({
     action: z.literal("create").describe("Create an empty GitHub repository"),
     name: repositoryName,
@@ -137,6 +161,17 @@ async function createAndPublish(input: Extract<z.infer<typeof actionSchema>, { a
 
 async function dispatch(input: z.infer<typeof actionSchema>): Promise<unknown> {
   switch (input.action) {
+    case "baseline":
+      return snapshotWorkingTree(input.localPath, input.sessionId, input.turnId);
+    case "safe_sync":
+      return safeSync(input);
+    case "pause":
+    case "resume": {
+      const config = readAutoSyncConfig(input.localPath);
+      config.enabled = input.action === "resume";
+      writeAutoSyncConfig(input.localPath, config);
+      return { localPath: input.localPath, enabled: config.enabled };
+    }
     case "create":
       return createRepository(input);
     case "create_and_publish":

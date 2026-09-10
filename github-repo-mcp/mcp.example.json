@@ -6,9 +6,7 @@
         "C:\\absolute\\path\\to\\github-repo-mcp\\dist\\src\\index.js"
       ],
       "env": {
-        "GITHUB_MCP_ALLOWED_ROOTS": "E:\\projects;C:\\Users\\your-name\\Documents\\projects",
-        "GITHUB_MCP_GIT_NAME": "Your Name",
-        "GITHUB_MCP_GIT_EMAIL": "you@example.com"
+        "GITHUB_MCP_ALLOWED_ROOTS": "D:\\absolute\\path\\to\\the-current-project"
       }
     }
   }

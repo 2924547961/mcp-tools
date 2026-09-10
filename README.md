@@ -6,7 +6,7 @@
 
 | 目录 | 用途 | 版本 |
 | --- | --- | --- |
-| [`github-repo-mcp`](./github-repo-mcp/) | 创建 GitHub 仓库，以及发布、同步、拉取和克隆代码 | 0.2.2 |
+| [`github-repo-mcp`](./github-repo-mcp/) | 创建 GitHub 仓库，以及安全发布、自动同步、拉取和克隆代码 | 0.3.0 |
 
 ## 目录约定
 

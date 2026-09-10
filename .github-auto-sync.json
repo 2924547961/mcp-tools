@@ -1,0 +1,18 @@
+{
+  "enabled": true,
+  "remote": "origin",
+  "branchPolicy": "current",
+  "checks": [
+    {
+      "command": "npm",
+      "args": [
+        "--prefix",
+        "github-repo-mcp",
+        "run",
+        "check"
+      ]
+    }
+  ],
+  "allowWithoutChecks": false,
+  "verifyRemote": true
+}

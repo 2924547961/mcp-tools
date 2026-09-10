@@ -24,7 +24,11 @@ interface GitHubRepositoryResponse {
 }
 
 function apiBase(): string {
-  return (process.env.GITHUB_API_URL || "https://api.github.com").replace(/\/$/, "");
+  const value = (process.env.GITHUB_API_URL || "https://api.github.com").replace(/\/$/, "");
+  if (value !== "https://api.github.com") {
+    throw new Error("GitHub Enterprise is not supported by this release; GITHUB_API_URL must be https://api.github.com.");
+  }
+  return value;
 }
 
 async function credentialToken(): Promise<string> {
@@ -59,7 +63,7 @@ async function githubRequest<T>(pathname: string, init: RequestInit = {}): Promi
       Accept: "application/vnd.github+json",
       Authorization: `Bearer ${token}`,
       "X-GitHub-Api-Version": "2022-11-28",
-      "User-Agent": "github-repo-mcp/0.1.0",
+      "User-Agent": "github-repo-mcp/0.3.0",
       ...(init.headers ?? {}),
     },
   });

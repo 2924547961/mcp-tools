@@ -1,10 +1,12 @@
 {
   "name": "github-repo-mcp",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "MCP server for automatically creating GitHub repositories after Codex generates code, then committing, publishing, syncing, pulling, and cloning code safely.",
   "type": "module",
   "bin": {
-    "github-repo-mcp": "dist/src/index.js"
+    "github-repo-mcp": "dist/src/index.js",
+    "github-auto-sync": "dist/src/cli.js",
+    "github-auto-sync-hook": "dist/src/hook.js"
   },
   "files": [
     "dist",
@@ -15,7 +17,8 @@
     "start": "node dist/src/index.js",
     "dev": "tsx src/index.ts",
     "test": "node --test dist/test/*.test.js",
-    "check": "npm run build && npm test"
+    "check": "npm run build && npm test",
+    "doctor": "node dist/src/cli.js doctor"
   },
   "engines": {
     "node": ">=18"
